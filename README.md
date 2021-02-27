@@ -76,3 +76,28 @@ which we feel adds to the complexity.
 
 - corruption of the git-note with the depends in.. [Any ideas]
 - corruption of the git-node with locks in. Delete them and end the git-depend
+
+# Quick demo
+Let's populate the config file.
+```
+go run git-dep.go config --author="Finn Ball" --email="finn.ball@codificasolutions.com"
+```
+
+Add a project to our dependency:
+```
+go run git-dep.go add https://github.com/git-depend/repoA.git:my/branch
+```
+
+Now commit the note:
+```
+go run git-dep.go commit
+```
+
+This will download the project into the cache, add a note to it and then read the note back.
+
+You can find the projects in the cache:
+
+```
+cd ~/.cache/git-depend/42a8ff2939cac2bc934488d5bec881c2e759f7b1/
+git notes --ref=git-depend show
+```
