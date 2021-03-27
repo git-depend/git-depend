@@ -78,19 +78,34 @@ which we feel adds to the complexity.
 - corruption of the git-node with locks in. Delete them and end the git-depend
 
 # Quick demo
+
+`git-depend` should be built with `go version` >= `1.15`
+
+To build the `git-depend` binary:
+
+```
+go build ./...
+```
+
+To run unit-tests
+
+```
+go test ./...
+```
+
 Let's populate the config file.
 ```
-go run git-dep.go config --author="Finn Ball" --email="finn.ball@codificasolutions.com"
+./git-depend config --author="Finn Ball" --email="finn.ball@codificasolutions.com"
 ```
 
 Add a project to our dependency:
 ```
-go run git-dep.go add https://github.com/git-depend/repoA.git:my/branch
+./git-depend add https://github.com/git-depend/repoA.git:my/branch
 ```
 
 Now commit the note:
 ```
-go run git-dep.go commit
+./git-depend commit
 ```
 
 This will download the project into the cache, add a note to it and then read the note back.
