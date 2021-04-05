@@ -74,12 +74,16 @@ func (cache *Cache) CloneOrUpdate(url string) (string, error) {
 		if err := Clone(url, tmp_directory); err != nil {
 			return "", err
 		}
+		// We have to execute a fetch as clone doesn't download notes.
+		if err := Fetch(tmp_directory); err != nil {
+			return "", err
+		}
 		if err := os.Rename(tmp_directory, directory); err != nil {
 			return "", err
 		}
 	} else if err != nil {
 		return "", err
-	} else if err := Update(url, directory); err != nil {
+	} else if err := Fetch(directory); err != nil {
 		return "", err
 	}
 
@@ -156,4 +160,94 @@ func (cache *Cache) GetRepositories() []string {
 		i++
 	}
 	return keys
+}
+
+// AddNotes to HEAD in the repository.
+func (cache *Cache) AddNotes(url string, ref string, note string) error {
+	dir, err := cache.GetRepositoryDirectory(url)
+	if err != nil {
+		return err
+	}
+	return AddNotes(dir, ref, note)
+}
+
+// AppendNotes to HEAD in the repository.
+func (cache *Cache) AppendNotes(url string, ref string, note string) error {
+	dir, err := cache.GetRepositoryDirectory(url)
+	if err != nil {
+		return err
+	}
+	return AppendNotes(dir, ref, note)
+}
+
+// ListNotes in HEAD in the repository.
+// Returns the stdout if no error.
+func (cache *Cache) ListNotes(url string, ref string) ([]byte, error) {
+	dir, err := cache.GetRepositoryDirectory(url)
+	if err != nil {
+		return nil, err
+	}
+	return ListNotes(dir, ref)
+}
+
+// ShowNotes in HEAD.
+// Returns the stdout if there is no error.
+func (cache *Cache) ShowNotes(url string, ref string) ([]byte, error) {
+	dir, err := cache.GetRepositoryDirectory(url)
+	if err != nil {
+		return nil, err
+	}
+	return ShowNotes(dir, ref)
+}
+
+func (cache *Cache) PushNotes(url string, ref string) error {
+	dir, err := cache.GetRepositoryDirectory(url)
+	if err != nil {
+		return err
+	}
+	return PushNotes("origin", dir, ref)
+}
+
+// RemoveNotes from the repository.
+func (cache *Cache) RemoveNotes(url string, ref string) error {
+	dir, err := cache.GetRepositoryDirectory(url)
+	if err != nil {
+		return err
+	}
+	return RemoveNotes(dir, ref)
+}
+
+// Merge will perform a rebase and merge with --ff-only to keep a clean history and push.
+// It will also create an empty merge commit.
+func (cache *Cache) Merge(url string, from string, to string, msg string) error {
+	dir, err := cache.GetRepositoryDirectory(url)
+	if err != nil {
+		return err
+	}
+
+	if err = Checkout(dir, from); err != nil {
+		return err
+	}
+
+	if err = Rebase(dir, "origin/"+to); err != nil {
+		return err
+	}
+
+	if err = Checkout(dir, to); err != nil {
+		return err
+	}
+
+	if err = Merge(dir, from); err != nil {
+		return err
+	}
+
+	if err = EmptyCommit(dir, msg); err != nil {
+		return err
+	}
+
+	if err = Push("origin", dir, to); err != nil {
+		return err
+	}
+
+	return nil
 }

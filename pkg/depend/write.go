@@ -1,12 +1,43 @@
 package depend
 
-import "github.com/git-depend/git-depend/pkg/git"
+import (
+	"encoding/json"
+	"time"
 
-// Write a request to a note.
-func (req *Request) Write(cache *git.Cache, ref string) error {
-	json, err := req.GetJson()
+	"github.com/git-depend/git-depend/pkg/git"
+)
+
+type Status int
+
+const (
+	Locked Status = iota
+	Unlocked
+)
+
+func (s Status) String() string {
+	return [...]string{"Locked", "Unlocked"}[s]
+}
+
+var ref_lock_name string = "git-depend-lock"
+
+// Lock allows us to safely write to a note.
+type Lock struct {
+	ID        string    `json:"Id"`
+	Timestamp time.Time `json:"Timestamp"`
+	Status    string    `json:"Status"`
+	cache     *git.Cache
+}
+
+// WriteLock will lock an individual repository.
+func (lock *Lock) WriteLock(node *Node) error {
+	data, err := json.Marshal(lock)
 	if err != nil {
 		return err
 	}
-	return cache.ForceAddNotes(req.Url, ref, string(json))
+
+	if err = lock.cache.AddNotes(node.url, ref_lock_name, string(data)); err != nil {
+		return err
+	}
+
+	return lock.cache.PushNotes(node.url, ref_lock_name)
 }
