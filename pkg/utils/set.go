@@ -37,9 +37,11 @@ func (c *StringSet) Size() int {
 }
 
 func (c *StringSet) Iterate() []string {
-	slice := make([]string, 0, c.Size())
+	slice := make([]string, c.Size())
+	i := 0
 	for k := range c.container {
-		slice = append(slice, k)
+		slice[i] = k
+		i++
 	}
 	return slice
 }
