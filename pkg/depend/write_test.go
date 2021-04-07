@@ -39,10 +39,6 @@ func TestWriteRequests(t *testing.T) {
 	if lock.ID != "foo" {
 		t.Fatal("Lock not created: " + lock.ID)
 	}
-
-	if lock.Status != Locked.String() {
-		t.Fatal("Not locked: " + Locked.String())
-	}
 }
 
 func TestWriteFailedRequests(t *testing.T) {
