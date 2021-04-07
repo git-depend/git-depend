@@ -90,7 +90,6 @@ func (requests *Requests) WriteLocks() error {
 	lock := &Lock{
 		ID:        "foo",
 		Timestamp: time.Now(),
-		Status:    Locked.String(),
 		cache:     requests.cache,
 	}
 	for node := range requests.table {

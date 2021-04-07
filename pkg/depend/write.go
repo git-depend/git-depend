@@ -7,24 +7,12 @@ import (
 	"github.com/git-depend/git-depend/pkg/git"
 )
 
-type Status int
-
-const (
-	Locked Status = iota
-	Unlocked
-)
-
-func (s Status) String() string {
-	return [...]string{"Locked", "Unlocked"}[s]
-}
-
 var ref_lock_name string = "git-depend-lock"
 
 // Lock allows us to safely write to a note.
 type Lock struct {
 	ID        string    `json:"Id"`
 	Timestamp time.Time `json:"Timestamp"`
-	Status    string    `json:"Status"`
 	cache     *git.Cache
 }
 
