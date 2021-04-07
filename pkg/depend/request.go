@@ -87,19 +87,24 @@ func (requests *Requests) Merge() error {
 // WriteLocks for a request and the children.
 func (requests *Requests) WriteLocks() error {
 	visited := utils.NewSet()
-	lock := &Lock{
-		ID:        "foo",
-		Timestamp: time.Now(),
-		cache:     requests.cache,
-	}
 	for node := range requests.table {
 		if !visited.Exists(node.name) {
+			lock := &Lock{
+				ID:        node.name,
+				Timestamp: time.Now(),
+				cache:     requests.cache,
+			}
 			if err := lock.WriteLock(node); err != nil {
 				return err
 			}
 			visited.Add(node.name)
 			for _, d := range node.GetChildren() {
 				if !visited.Exists(d.name) {
+					lock := &Lock{
+						ID:        d.name,
+						Timestamp: time.Now(),
+						cache:     requests.cache,
+					}
 					if err := lock.WriteLock(d); err != nil {
 						return err
 					}
