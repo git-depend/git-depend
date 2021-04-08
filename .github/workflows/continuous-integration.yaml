@@ -3,7 +3,18 @@ name: Continuous Integration
 on: [push, pull_request]
 
 jobs:
+  gofmt:
+    runs-on: "ubuntu-20.04"
+    steps:
+    - uses: actions/checkout@v2
 
+    - name: Set up Go
+      uses: actions/setup-go@v2
+      with:
+        go-version: 1.16
+
+    - name: gofmt
+      run: test_output=$(gofmt -d -e -l .) && echo "$test_output" && test -z "$test_output"
   build-test:
     strategy:
       matrix:
