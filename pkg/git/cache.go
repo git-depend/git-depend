@@ -209,12 +209,12 @@ func (cache *Cache) PushNotes(url string, ref string) error {
 }
 
 // RemoveNotes from the repository.
-func (cache *Cache) RemoveNotes(url string, ref string) error {
+func (cache *Cache) RemoveNotes(url string, ref string, object string) error {
 	dir, err := cache.GetRepositoryDirectory(url)
 	if err != nil {
 		return err
 	}
-	return RemoveNotes(dir, ref)
+	return RemoveNotes(dir, ref, object)
 }
 
 // Merge will perform a rebase and merge with --ff-only to keep a clean history and push.

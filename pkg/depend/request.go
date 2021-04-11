@@ -3,7 +3,6 @@ package depend
 import (
 	"encoding/json"
 	"errors"
-	"time"
 
 	"github.com/git-depend/git-depend/pkg/git"
 	"github.com/git-depend/git-depend/pkg/utils"
@@ -19,12 +18,14 @@ type Request struct {
 }
 
 type RequestsTable map[*Node]*Request
+type lockTable map[*Node]*lock
 
 // Requests contains a map of Node names to the Request.
 type Requests struct {
 	table      RequestsTable
 	nodesTable NodeTable
 	cache      *git.Cache
+	lockTable  lockTable
 }
 
 // NewRequests returns a new Requests struct.
@@ -33,6 +34,7 @@ func NewRequests(table NodeTable, cache *git.Cache) *Requests {
 		table:      make(RequestsTable),
 		nodesTable: table,
 		cache:      cache,
+		lockTable:  make(lockTable),
 	}
 }
 
@@ -68,7 +70,7 @@ func (requests *Requests) AddRequest(name string, from string, to string, author
 
 // Merge the requests.
 func (requests *Requests) Merge() error {
-	if err := requests.WriteLocks(); err != nil {
+	if err := requests.writeLocks(); err != nil {
 		return err
 	}
 
@@ -81,35 +83,62 @@ func (requests *Requests) Merge() error {
 			return err
 		}
 	}
+
+	if err := requests.removeLocks(); err != nil {
+		return err
+	}
 	return nil
 }
 
-// WriteLocks for a request and the children.
-func (requests *Requests) WriteLocks() error {
+// writeLocks for a request and the children.
+func (requests *Requests) writeLocks() error {
 	visited := utils.NewSet()
 	for node := range requests.table {
 		if !visited.Exists(node.name) {
-			lock := &Lock{
-				ID:        node.name,
-				Timestamp: time.Now(),
-				cache:     requests.cache,
-			}
-			if err := lock.WriteLock(node); err != nil {
+			lock := NewLock(node.name, requests.cache)
+			if err := lock.writeLock(node); err != nil {
 				return err
 			}
+			requests.lockTable[node] = lock
 			visited.Add(node.name)
 			for _, d := range node.GetChildren() {
 				if !visited.Exists(d.name) {
-					lock := &Lock{
-						ID:        d.name,
-						Timestamp: time.Now(),
-						cache:     requests.cache,
-					}
-					if err := lock.WriteLock(d); err != nil {
+					lock := NewLock(d.name, requests.cache)
+					if err := lock.writeLock(d); err != nil {
 						return err
 					}
+					requests.lockTable[node] = lock
 					visited.Add(d.name)
 				}
+			}
+		}
+	}
+	return nil
+}
+
+func (requests *Requests) removeLocks() error {
+	visited := utils.NewSet()
+	for node := range requests.table {
+		if !visited.Exists(node.name) {
+			lock, ok := requests.lockTable[node]
+			if ok {
+				if err := lock.removeLock(node); err != nil {
+					return err
+				}
+			}
+			delete(requests.lockTable, node)
+			visited.Add(node.name)
+		}
+		for _, d := range node.GetChildren() {
+			if !visited.Exists(d.name) {
+				lock, ok := requests.lockTable[d]
+				if ok {
+					if err := lock.removeLock(d); err != nil {
+						return err
+					}
+				}
+				delete(requests.lockTable, node)
+				visited.Add(d.name)
 			}
 		}
 	}

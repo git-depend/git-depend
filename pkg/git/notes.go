@@ -35,8 +35,8 @@ func ShowNotes(directory string, ref string) ([]byte, error) {
 	return Notes(directory, ref, args)
 }
 
-func RemoveNotes(directory string, ref string) error {
-	args := []string{"remove"}
+func RemoveNotes(directory string, ref string, object string) error {
+	args := []string{"remove", object}
 	_, err := Notes(directory, ref, args)
 	return err
 }

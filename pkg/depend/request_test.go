@@ -46,6 +46,10 @@ func TestMergeRequests(t *testing.T) {
 	if err = requests.Merge(); err != nil {
 		t.Fatal(err)
 	}
+
+	if len(requests.lockTable) != 0 {
+		t.Fatal("locks not released at end of merge")
+	}
 }
 
 func writeBranchLocalGitRepo(git_path string, file_name string, branch string) error {
