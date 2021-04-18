@@ -28,11 +28,17 @@ func ListNotes(directory string, ref string) ([]byte, error) {
 	return Notes(directory, ref, args)
 }
 
-// ShowNotes in HEAD.
+// ShowNotes.
 // Returns the stdout if there is no error.
-func ShowNotes(directory string, ref string) ([]byte, error) {
-	args := []string{"show"}
-	return Notes(directory, ref, args)
+// Defaults to HEAD if no object is given.
+func ShowNotes(directory string, ref string, object string) ([]byte, error) {
+	if object == "" {
+		args := []string{"show"}
+		return Notes(directory, ref, args)
+	} else {
+		args := []string{"show", object}
+		return Notes(directory, ref, args)
+	}
 }
 
 func RemoveNotes(directory string, ref string, object string) error {

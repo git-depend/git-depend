@@ -190,14 +190,15 @@ func (cache *Cache) ListNotes(url string, ref string) ([]byte, error) {
 	return ListNotes(dir, ref)
 }
 
-// ShowNotes in HEAD.
+// ShowNotes of an object.
+// If an empty object is given, defaults to HEAD.
 // Returns the stdout if there is no error.
-func (cache *Cache) ShowNotes(url string, ref string) ([]byte, error) {
+func (cache *Cache) ShowNotes(url string, ref string, object string) ([]byte, error) {
 	dir, err := cache.GetRepositoryDirectory(url)
 	if err != nil {
 		return nil, err
 	}
-	return ShowNotes(dir, ref)
+	return ShowNotes(dir, ref, object)
 }
 
 func (cache *Cache) PushNotes(url string, ref string) error {
