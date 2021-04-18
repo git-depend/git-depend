@@ -25,19 +25,28 @@ func TestWriteRequests(t *testing.T) {
 	if err = requests.AddRequest("foo", "branch", "main", "Eric", "eric@email.com"); err != nil {
 		t.Fatal("Could not add request: " + err.Error())
 	}
-	if err = requests.WriteLocks(); err != nil {
+	if err = requests.writeLocks(); err != nil {
 		t.Fatal("Could not write requests: " + err.Error())
 	}
 
-	out, err := cache.ShowNotes(urls[0], ref_lock_name)
+	_, err = cache.ShowNotes(urls[0], ref_lock_name)
 	if err != nil {
 		t.Fatal(err)
 	}
-	lock := &Lock{}
-	json.Unmarshal(out, &lock)
+	lock, _ := requests.lockTable[requests.nodesTable["foo"]]
+	if lock.lockref.noteObject == "" {
+		t.Fatal("lockref note object reference not updated")
+	}
+	if lock.lockref.object == "" {
+		t.Fatal("lockref git object reference not updated")
+	}
 
-	if lock.ID != "foo" {
-		t.Fatal("Lock not created: " + lock.ID)
+	if err = requests.removeLocks(); err != nil {
+		t.Fatal("Could not remove locks: " + err.Error())
+	}
+	_, ok := requests.lockTable[requests.nodesTable["foo"]]
+	if ok {
+		t.Fatal("lockTable not updated with removing lock")
 	}
 }
 
@@ -63,8 +72,12 @@ func TestWriteFailedRequests(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if err = requests.WriteLocks(); err == nil {
+	if err = requests.writeLocks(); err == nil {
 		t.Fatal("Should have failed to create lock.")
+	}
+	_, ok := requests.lockTable[requests.nodesTable["foo"]]
+	if ok {
+		t.Fatal("lockTable wrongly updated")
 	}
 }
 
