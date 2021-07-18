@@ -101,7 +101,7 @@ func (requests *Requests) writeLocks() error {
 			}
 			requests.lockTable[node] = lock
 			visited.Add(node.name)
-			for _, d := range node.GetChildren() {
+			for _, d := range node.Children() {
 				if !visited.Exists(d.name) {
 					lock := NewLock(d.name, requests.cache)
 					if err := lock.writeLock(d); err != nil {
@@ -129,7 +129,7 @@ func (requests *Requests) removeLocks() error {
 			delete(requests.lockTable, node)
 			visited.Add(node.name)
 		}
-		for _, d := range node.GetChildren() {
+		for _, d := range node.Children() {
 			if !visited.Exists(d.name) {
 				lock, ok := requests.lockTable[d]
 				if ok {

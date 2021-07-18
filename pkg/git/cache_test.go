@@ -234,7 +234,7 @@ func TestPushNotes(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	out, err := cache.ShowNotes(urls[0], ref_lock_name)
+	out, err := cache.ShowNotes(urls[0], ref_lock_name, "")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -262,7 +262,7 @@ func TestAppendNotes(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	out, err := cache.ShowNotes(urls[0], ref_lock_name)
+	out, err := cache.ShowNotes(urls[0], ref_lock_name, "")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -278,7 +278,7 @@ func TestAppendNotes(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	out, err = cache.ShowNotes(urls[0], ref_lock_name)
+	out, err = cache.ShowNotes(urls[0], ref_lock_name, "")
 	if err != nil {
 		t.Fatal(err)
 	}
