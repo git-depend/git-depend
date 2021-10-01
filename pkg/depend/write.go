@@ -75,22 +75,31 @@ func (lock *lock) populateLockRef(node *Node) error {
 	if err != nil {
 		return err
 	}
-	// For Windows compatability
-	noteRefs := regexp.MustCompile("\r\n|\n").Split(strings.TrimSpace(string(byte_s)), -1)
-	if len(noteRefs) > 1 {
-		lastRef := strings.Fields(noteRefs[len(noteRefs)-1])[1]
-		// TODO: This should be managed by an appropriate logging library
-		return errors.New(fmt.Sprintf("Number of locks in the repo > 1, lock used maps to git %s", lastRef))
+
+	note_object, object, err := parseUniqueNote(byte_s)
+	if err != nil {
+		return err
 	}
 
-	for _, noteRef := range noteRefs {
-		n := strings.Fields(noteRef)
-		if len(n) != 2 {
-			return errors.New(fmt.Sprintf("Unparseable git note reference. Num of fields in list != 2 (%d)", len(n)))
-		}
-		lock.lockref.noteObject = n[0]
-		lock.lockref.object = n[1]
-	}
-
+	lock.lockref.noteObject = note_object
+	lock.lockref.object = object
 	return nil
+}
+
+func parseUniqueNote(note []byte) (string, string, error) {
+	// For Windows compatability
+	noteRefs := regexp.MustCompile("\r\n|\n").Split(strings.TrimSpace(string(note)), -1)
+	if len(noteRefs) == 1 {
+		n := strings.Fields(noteRefs[0])
+		if len(n) != 2 {
+			return "", "", fmt.Errorf("unparseable git note reference, num of fields in list != 2 (%d)", len(n))
+		}
+		return n[0], n[1], nil
+	} else if len(noteRefs) == 0 {
+		return "", "", nil
+	}
+
+	lastRef := strings.Fields(noteRefs[len(noteRefs)-1])[1]
+	// TODO: This should be managed by an appropriate logging library
+	return "", "", errors.New("number of dependencies in the repo > 1, only one dependency file needed " + lastRef)
 }

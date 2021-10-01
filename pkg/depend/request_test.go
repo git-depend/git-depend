@@ -9,7 +9,10 @@ import (
 )
 
 func TestNewRequest(t *testing.T) {
-	graph := createSimpleGraph(t, test_data_simple_graph)
+	graph, err := NewGraph(createLocalGitCache(t), createSimpleLocalGraph(t))
+	if err != nil {
+		t.Fatal(err)
+	}
 	reqs := NewRequests(graph.table, nil)
 
 	if err := reqs.AddRequest("foo", "branch", "main", "Test", "test@test.com"); err != nil {
@@ -18,7 +21,10 @@ func TestNewRequest(t *testing.T) {
 }
 
 func TestNewRequestFail(t *testing.T) {
-	graph := createSimpleGraph(t, test_data_simple_graph)
+	graph, err := NewGraph(createLocalGitCache(t), createSimpleLocalGraph(t))
+	if err != nil {
+		t.Fatal(err)
+	}
 	reqs := NewRequests(graph.table, nil)
 
 	if err := reqs.AddRequest("no-key", "branch", "main", "Test", "test@test.com"); err == nil {
@@ -28,14 +34,12 @@ func TestNewRequestFail(t *testing.T) {
 
 func TestMergeRequests(t *testing.T) {
 	staging_branch := "staging"
-	urls := []string{createLocalGitRepo(t), createLocalGitRepo(t), createLocalGitRepo(t)}
-
-	writeBranchLocalGitRepo(urls[0], "other.txt", staging_branch)
-
-	graph, err := NewGraph(createSimpleLocalGraph(t, urls[0], urls[1], urls[2]))
+	graph, err := NewGraph(nil, createSimpleLocalGraph(t))
 	if err != nil {
 		t.Fatal("Could not create graph: " + err.Error())
 	}
+	node := graph.table["foo"]
+	writeBranchLocalGitRepo(node.url, "other.txt", staging_branch)
 
 	cache := createLocalGitCache(t)
 
